@@ -9,7 +9,7 @@ Usage of WWPE for attacking targets without prior mutual consent is illegal. It'
 
 # Usage:
 1. Download the Zip and Extract it or git clone https://github.com/The-Robin-Hood/WWPE/ 
-2. cd WWPE
+2. cd WifiPasswordExtractor
 3. python WWPE.py
 
 ### Screenshot:
